@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'cart/**'   # Trigger only when files in cart folder change
-  workflow_dispatch:       # Trigger when files in api-gateway folder change
+     # Trigger when files in api-gateway folder change
             
 
 jobs:

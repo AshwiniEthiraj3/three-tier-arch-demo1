@@ -1,17 +1,14 @@
-
 name: Build and Deploy Cart Service
 
 on:
   push:
     branches: [ "main" ]
     paths:
-      - 'cart/**'  # Only trigger if something in the cart service changes
+      - 'cart/**'
   pull_request:
 
 env:
   AWS_REGION: ap-south-1
-  # Uses your AWS account ID secret to build the registry URL
-  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
   ECR_REPOSITORY: cart
   IMAGE_TAG: ${{ github.sha }}
 
@@ -34,7 +31,7 @@ jobs:
 
       - name: Install Dependencies
         working-directory: cart
-        run: npm ci
+        run: npm install
 
       - name: Run Tests
         working-directory: cart
@@ -53,7 +50,6 @@ jobs:
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
-      # ---- Static AWS keys (no OIDC) ----
       - name: Configure AWS Credentials (static keys)
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -61,11 +57,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Compute ECR_REGISTRY
+        run: echo "ECR_REGISTRY=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com" >> $GITHUB_ENV
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # (Optional) Ensure the ECR repository exists
       - name: Ensure ECR repository exists
         run: |
           aws ecr describe-repositories --repository-names "${ECR_REPOSITORY}" >/dev/null 2>&1 || \

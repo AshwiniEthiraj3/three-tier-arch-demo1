@@ -1,0 +1,19 @@
+name: payment CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'payment/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Echo service name
+        run: echo "Running payment pipeline"

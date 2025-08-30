@@ -1,9 +1,7 @@
 name: Build and Deploy Cart Service
 
 on:
-  # Run manually from the Actions tab
   workflow_dispatch:
-  # Run on pushes to main that touch cart/*
   push:
     branches: [ "main" ]
     paths:
@@ -35,19 +33,18 @@ jobs:
         working-directory: cart
         run: npm install
 
-#      - name: Run Tests
-#        working-directory: cart
-#       run: npm test
+      # - name: Run Tests
+      #   working-directory: cart
+      #   run: npm test
 
       - name: SonarQube Scan
         if: ${{ github.event_name != 'pull_request' }}
         working-directory: cart
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          run: |
-               npm install -g sonarqube-scanner
-               sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
+        run: |
+          npm install -g sonarqube-scanner
+          sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       - name: Configure AWS Credentials (static keys)
         uses: aws-actions/configure-aws-credentials@v4

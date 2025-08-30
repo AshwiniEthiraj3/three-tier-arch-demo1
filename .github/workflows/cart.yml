@@ -38,16 +38,13 @@ jobs:
 
       - name: SonarQube Scan
         if: ${{ github.event_name != 'pull_request' }}
+        working-directory: cart
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          npm install -g sonarqube-scanner
-          sonar-scanner \
-            -Dsonar.projectKey=cart \
-            -Dsonar.projectBaseDir=cart \
-            -Dsonar.sources=cart \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          run: |
+               npm install -g sonarqube-scanner
+               sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
 
       - name: Configure AWS Credentials (static keys)
         uses: aws-actions/configure-aws-credentials@v4

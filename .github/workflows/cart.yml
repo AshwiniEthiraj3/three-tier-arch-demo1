@@ -4,7 +4,10 @@ on:
   push:
     branches: 
       - main
-    
+    paths:
+      - 'cart/**'  # 👈 This limits the trigger to only cart changes
+  workflow_dispatch:
+ 
 
 env:
   AWS_REGION: ap-south-1

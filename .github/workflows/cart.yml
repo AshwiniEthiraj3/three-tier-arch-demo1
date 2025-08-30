@@ -1,10 +1,13 @@
-
+name: Build and Deploy Cart Service
 
 on:
+  # Run manually from the Actions tab
+  workflow_dispatch:
+  # Run on pushes to main that touch cart/*
   push:
     branches: [ "main" ]
-  
-  pull_request:
+    paths:
+      - 'cart/**'
 
 env:
   AWS_REGION: ap-south-1

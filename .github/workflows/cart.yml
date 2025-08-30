@@ -4,8 +4,7 @@ on:
   push:
     branches: 
       - main
-    paths:
-      - 'cart/**'
+    
 
 env:
   AWS_REGION: ap-south-1

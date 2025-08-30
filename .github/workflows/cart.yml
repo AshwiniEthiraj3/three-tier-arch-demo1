@@ -2,7 +2,8 @@ name: Build and Deploy Cart Service
 
 on:
   push:
-    branches: [ "main" ]
+    branches: 
+      - main
     paths:
       - 'cart/**'
 

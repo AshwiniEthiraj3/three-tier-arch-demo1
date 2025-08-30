@@ -1,44 +1,82 @@
-name: Build and Deploy API Gateway 
+
+name: Build and Deploy Cart Service
 
 on:
   push:
-    branches:
-      - main
     paths:
-      - 'cart/**'   # Trigger only when files in cart folder change
-     # Trigger when files in api-gateway folder change
-            
+      - 'cart/**'
+
+env:
+  AWS_REGION: ap-south-1
+  # Uses your AWS account ID secret to build the registry URL
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+  ECR_REPOSITORY: cart
+  IMAGE_TAG: ${{ github.sha }}
+
+permissions:
+  contents: read
+  actions: read
 
 jobs:
-  build-and-deploy:
+  build-test-sonar-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        working-directory: cart
+        run: npm ci
+
+      - name: Run Tests
+        working-directory: cart
+        run: npm test
+
+      - name: SonarQube Scan
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          npm install -g sonarqube-scanner
+          sonar-scanner \
+            -Dsonar.projectKey=cart \
+            -Dsonar.projectBaseDir=cart \
+            -Dsonar.sources=cart \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+      # ---- Static AWS keys (no OIDC) ----
+      - name: Configure AWS Credentials (static keys)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Log in to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Build Docker image 
-        env: 
-          IMAGE_TAG: "${{ secrets.API_ECR_REPOSITORY }}:cart-${{ github.sha }}" 
+      # (Optional) Ensure the ECR repository exists
+      - name: Ensure ECR repository exists
         run: |
-          docker build -t $IMAGE_TAG -f cart/Dockerfile cart
+          aws ecr describe-repositories --repository-names "${ECR_REPOSITORY}" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "${ECR_REPOSITORY}" --image-scanning-configuration scanOnPush=true
 
-      - name: Push Docker image to ECR 
-        env: 
-          IMAGE_TAG: "${{ secrets.API_ECR_REPOSITORY }}:cart-${{ github.sha }}" 
-        run: | 
-          docker push $IMAGE_TAG
+      - name: Build Docker Image
+        run: |
+          docker build \
+            -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" \
+            -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest" \
+            -f cart/Dockerfile cart
+
+      - name: Push Docker Image
+        run: |
+          docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"

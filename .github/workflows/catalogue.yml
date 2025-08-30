@@ -1,19 +1,80 @@
-name: catalogue CI
+name: Build and Deploy catalogue Service
 
 on:
   push:
-    branches:
+    branches: 
       - main
     paths:
-      - 'catalogue/**'
+      - 'catalogue/**'  # 👈 This limits the trigger to only catalogue changes
   workflow_dispatch:
+ 
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: catalogue
+  IMAGE_TAG: ${{ github.sha }}
+
+permissions:
+  contents: read
+  actions: read
 
 jobs:
-  build:
+  build-test-sonar-deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      - name: Echo service name
-        run: echo "Running catalogue pipeline"
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        working-directory: catalogue
+        run: npm install
+
+      # - name: Run Tests
+      #   working-directory: cart
+      #   run: npm test
+
+      - name: SonarQube Scan
+        if: ${{ github.event_name != 'pull_request' }}
+        working-directory: catalogue
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          npm install -g sonarqube-scanner
+          sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+      - name: Configure AWS Credentials (static keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Compute ECR_REGISTRY
+        run: echo "ECR_REGISTRY=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com" >> $GITHUB_ENV
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr describe-repositories --repository-names "${ECR_REPOSITORY}" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "${ECR_REPOSITORY}" --image-scanning-configuration scanOnPush=true
+
+      - name: Build Docker Image
+        run: |
+          docker build \
+            -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" \
+            -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest" \
+            -f cart/Dockerfile cart
+
+      - name: Push Docker Image
+        run: |
+          docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"

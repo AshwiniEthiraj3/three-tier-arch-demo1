@@ -3,7 +3,7 @@ name: CI (Dispatch • Go → ECR)
 on:
   push:
     branches: [ main ]
-    paths: [ 'dispatch/**', '.github/workflows/dispatch-ci.yml' ]
+    paths: [ 'dispatch/**', '.github/workflows/dispatch.yml' ]
   pull_request:
     branches: [ main ]
     paths: [ 'dispatch/**' ]
@@ -26,19 +26,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # -------- Go build & test --------
+      # -------- Go build & test (module-safe) --------
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
-          cache: true
-          cache-dependency-path: dispatch/go.sum
 
-      - name: Go mod download
+      # If go.mod is missing (simple repo), create it and tidy deps
+      - name: Init/tidy Go module if missing
         working-directory: dispatch
-        run: go mod download
+        run: |
+          if [ ! -f go.mod ]; then
+            echo "No go.mod found -> initializing module 'dispatch'"
+            go mod init dispatch
+          fi
+          go mod tidy
 
-      - name: Lint (go vet)
+      - name: Vet
         working-directory: dispatch
         run: go vet ./...
 
@@ -46,7 +50,7 @@ jobs:
         working-directory: dispatch
         run: go test -v ./...
 
-      # -------- Build & push Docker to ECR --------
+      # -------- Build & push Docker image to ECR --------
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -72,15 +76,15 @@ jobs:
             -t "${REGISTRY}/${ECR_REPOSITORY}:latest" \
             -f dispatch/Dockerfile dispatch
 
-      # (Optional) quick smoke: start then stop (uncomment when /health exists)
+      # Optional smoke test (uncomment if you add /health)
       # - name: Smoke run
       #   env:
       #     REGISTRY: ${{ steps.ecr.outputs.registry }}
       #   run: |
       #     CID=$(docker run -d -p 18080:8080 "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}")
       #     sleep 3
-      #     docker logs "$CID" --tail 100 || true
       #     # curl -fsS http://localhost:18080/health
+      #     docker logs "$CID" --tail 100 || true
       #     docker rm -f "$CID" >/dev/null
 
       - name: Push image

@@ -46,7 +46,7 @@ jobs:
         with:
           args: >
            -Dsonar.projectKey=AshwiniEthiraj3_three-tier-arch-demo1
-           -Dsonar.organization=ashwiniaethiraj3
+           -Dsonar.organization=ashwiniethiraj3
            -Dsonar.host.url=https://sonarcloud.io
            -Dsonar.projectBaseDir=catalogue
         env:
@@ -84,6 +84,7 @@ jobs:
         run: |
           docker push "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           docker push "${REGISTRY}/${ECR_REPOSITORY}:latest"
+
 
 
 

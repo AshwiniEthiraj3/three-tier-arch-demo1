@@ -1,4 +1,4 @@
-// ---- Optional Instana instrumentation (safe/no-op when not installed) ----
+// ---- Optional Instana instrumentation (safe/no-op when not installed) ---------
 let instana = null;
 
 try {

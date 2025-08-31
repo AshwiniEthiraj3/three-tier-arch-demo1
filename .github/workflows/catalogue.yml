@@ -39,6 +39,12 @@ jobs:
       #    npm test -- --coverage || true
           # ensure file exists so sonar doesn't fail if tests are skippeddddd
       #    test -f coverage/lcov.info || echo "TN:\n" > coverage/lcov.info
+      - name: Debug workspace
+        run: |
+              pwd
+              ls -la
+              echo "---- root sonar-project.properties ----"
+              test -f sonar-project.properties && head -n 20 sonar-project.properties || echo "MISSING"
 
       # ================= SONARCLOUD (pick ONE approach; this is the recommended one) =================
       - name: SonarCloud Scan
@@ -84,6 +90,7 @@ jobs:
         run: |
           docker push "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           docker push "${REGISTRY}/${ECR_REPOSITORY}:latest"
+
 
 
 

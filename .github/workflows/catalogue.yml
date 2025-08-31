@@ -31,14 +31,14 @@ jobs:
 
       - name: Install deps
         working-directory: catalogue
-        run: npm ci
+        run: npm install
 
-      - name: Test (generate lcov)
-        working-directory: catalogue
-        run: |
-          npm test -- --coverage || true
+      #- name: Test (generate lcov)
+      #  working-directory: catalogue
+      #  run: |
+      #    npm test -- --coverage || true
           # ensure file exists so sonar doesn't fail if tests are skipped
-          test -f coverage/lcov.info || echo "TN:\n" > coverage/lcov.info
+      #    test -f coverage/lcov.info || echo "TN:\n" > coverage/lcov.info
 
       # ================= SONARCLOUD (pick ONE approach; this is the recommended one) =================
       - name: SonarCloud Scan

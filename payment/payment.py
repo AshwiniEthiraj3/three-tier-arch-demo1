@@ -11,6 +11,7 @@ from rabbitmq import Publisher
 import prometheus_client
 from prometheus_client import Counter, Histogram
 
+#gfgbfcbnc
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 

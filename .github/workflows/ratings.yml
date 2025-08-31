@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  AWS_REGION: ${{ AWS_REGION }}
+  AWS_REGION: ap-south-1
   ECR_REPOSITORY: ratings
   IMAGE_TAG: ${{ github.sha }}
 
@@ -104,3 +104,4 @@ jobs:
         run: |
           docker push "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           docker push "${REGISTRY}/${ECR_REPOSITORY}:latest"
+

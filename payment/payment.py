@@ -1,4 +1,3 @@
-import random
 import os
 import sys
 import time
@@ -11,7 +10,7 @@ from rabbitmq import Publisher
 import prometheus_client
 from prometheus_client import Counter, Histogram
 
-#gfgbfcbnc
+# app setup
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 
@@ -23,7 +22,7 @@ PAYMENT_GATEWAY = os.getenv('PAYMENT_GATEWAY', 'https://paypal.com/')
 PromMetrics = {
     'SOLD_COUNTER': Counter('sold_count', 'Running count of items sold'),
     'AUS': Histogram('units_sold', 'Average Unit Sale', buckets=(1, 2, 5, 10, 100)),
-    'AVS': Histogram('cart_value', 'Average Value Sale', buckets=(100, 200, 500, 1000, 2000, 5000, 10000))
+    'AVS': Histogram('cart_value', 'Average Value Sale', buckets=(100, 200, 500, 1000, 2000, 5000, 10000)),
 }
 
 
@@ -89,7 +88,7 @@ def pay(id):
 
     # Generate order ID
     orderid = str(uuid.uuid4())
-    queueOrder({ 'orderid': orderid, 'user': id, 'cart': cart })
+    queueOrder({'orderid': orderid, 'user': id, 'cart': cart})
 
     # Add to order history
     if not anonymous_user:
@@ -97,7 +96,7 @@ def pay(id):
             req = requests.post(
                 f'http://{USER}:8080/order/{id}',
                 data=json.dumps({'orderid': orderid, 'cart': cart}),
-                headers={'Content-Type': 'application/json'}
+                headers={'Content-Type': 'application/json'},
             )
             app.logger.info(f'order history returned {req.status_code}')
         except requests.exceptions.RequestException as err:
@@ -115,7 +114,7 @@ def pay(id):
     if req.status_code != 200:
         return 'order history update error', req.status_code
 
-    return jsonify({ 'orderid': orderid })
+    return jsonify({'orderid': orderid})
 
 
 def queueOrder(order):

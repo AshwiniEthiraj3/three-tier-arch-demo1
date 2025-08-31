@@ -39,18 +39,17 @@ jobs:
       #    npm test -- --coverage || true
           # ensure file exists so sonar doesn't fail if tests are skippeddddd
       #    test -f coverage/lcov.info || echo "TN:\n" > coverage/lcov.info
-      
-
-      # ================= SONARCLOUD (pick ONE approach; this is the recommended one) =================
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
-          projectBaseDir: 'catalogue'
-          args: >
-            -Dsonar.projectKey=AshwiniEthiraj3_three-tier-arch-demo1
-            -Dsonar.organization=AshwiniEthiraj3
+         projectBaseDir: 'catalogue'
+         args: >
+          -Dsonar.projectKey=AshwiniEthiraj3_three-tier-arch-demo1
+          -Dsonar.organization=AshwiniEthiraj3
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      
       # ================= AWS / ECR =================
       - name: Configure AWS Credentials (static keys)
         uses: aws-actions/configure-aws-credentials@v4
@@ -83,6 +82,7 @@ jobs:
         run: |
           docker push "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           docker push "${REGISTRY}/${ECR_REPOSITORY}:latest"
+
 
 
 

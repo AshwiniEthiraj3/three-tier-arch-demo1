@@ -129,7 +129,7 @@ def countItems(items):
     return sum(item.get('qty') for item in items if item.get('sku') != 'SHIP')
 
 
-# RabbitMQ publisher
+# RabbitMQ publisherrrr
 publisher = Publisher(app.logger)
 
 if __name__ == "__main__":

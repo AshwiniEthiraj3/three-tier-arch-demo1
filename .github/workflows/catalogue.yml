@@ -45,10 +45,10 @@ jobs:
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
-          projectKey: 'AshwiniEthiraj3_three-tier-arch-demo1'
-          organization: 'AshwiniEthiraj3'
-          # Add this line to tell the scanner where your code is
           projectBaseDir: 'catalogue'
+          args: >
+            -Dsonar.projectKey=AshwiniEthiraj3_three-tier-arch-demo1
+            -Dsonar.organization=AshwiniEthiraj3
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       # ================= AWS / ECR =================
@@ -83,6 +83,7 @@ jobs:
         run: |
           docker push "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           docker push "${REGISTRY}/${ECR_REPOSITORY}:latest"
+
 
 
 

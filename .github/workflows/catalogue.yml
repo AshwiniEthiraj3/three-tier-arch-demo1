@@ -43,10 +43,12 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         working-directory: catalogue
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           npm install -g sonarqube-scanner
-          sonar-scanner -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          sonar-scanner \
+             -Dproject.settings=../sonar-project.properties \
+             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       - name: Configure AWS Credentials (static keys)
         uses: aws-actions/configure-aws-credentials@v4
@@ -78,3 +80,4 @@ jobs:
         run: |
           docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
+

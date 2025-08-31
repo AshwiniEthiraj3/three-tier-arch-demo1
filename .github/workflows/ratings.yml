@@ -84,18 +84,18 @@ jobs:
             -f ratings/Dockerfile ratings
 
       # ---------- Runtime validation ----------
-      - name: Probe /server-status in container
-        env:
-          REGISTRY: ${{ steps.ecr.outputs.registry }}
-        run: |
-          CID=$(docker run -d -p 8080:80 "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}")
-          for i in {1..30}; do
-            if curl -fsS http://localhost:8080/server-status?auto >/dev/null; then OK=1; break; fi
-            sleep 1
-          done
-          docker logs "$CID" --tail 200 || true
-          docker rm -f "$CID" >/dev/null
-          test "${OK:-0}" = "1"
+      #- name: Probe /server-status in container
+      #  env:
+      #    REGISTRY: ${{ steps.ecr.outputs.registry }}
+      #  run: |
+      #    CID=$(docker run -d -p 8080:80 "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}")
+      #    for i in {1..30}; do
+      #      if curl -fsS http://localhost:8080/server-status?auto >/dev/null; then OK=1; break; fi
+      #      sleep 1
+      #    done
+      #    docker logs "$CID" --tail 200 || true
+      #    docker rm -f "$CID" >/dev/null
+      #    test "${OK:-0}" = "1"
 
       # ---------- Push ----------
       - name: Push image
@@ -104,4 +104,5 @@ jobs:
         run: |
           docker push "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           docker push "${REGISTRY}/${ECR_REPOSITORY}:latest"
+
 

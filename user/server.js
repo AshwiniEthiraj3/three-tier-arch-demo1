@@ -11,7 +11,7 @@ try {
   console.warn(`[instana] not available, continuing without APM: ${e.message}`);
   instana = { currentSpan: () => ({ annotate: () => {} }) };
 }
-// --------------------------------------------------------------------------
+// --------//------------------------------------------------------------------
 
 const mongoClient = require('mongodb').MongoClient;
 const mongoObjectID = require('mongodb').ObjectID;

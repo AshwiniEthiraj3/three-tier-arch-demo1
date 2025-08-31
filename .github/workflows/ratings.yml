@@ -1,19 +1,106 @@
-name: ratings CI
+name: Build and Deploy Ratings (PHP-Apache)
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'ratings/**'
+    branches: [ main ]
+    paths: [ 'ratings/**' ]
   workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+env:
+  AWS_REGION: ${{AWS_REGION}}
+  ECR_REPOSITORY: ratings
+  IMAGE_TAG: ${{ github.sha }}
 
-      - name: Echo service name
-        run: echo "Running ratings pipeline"
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build-validate-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---------- Pre-build checks ----------
+      - name: Set up PHP 7.4 for linting
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+
+      - name: PHP lint (syntax check)
+        run: |
+          set -e
+          # Lint all PHP files under ratings/html
+          if compgen -G "ratings/html/**/*.php" > /dev/null; then
+            find ratings/html -type f -name "*.php" -print0 | xargs -0 -n1 php -l
+          else
+            echo "No PHP files found to lint."
+          fi
+
+      # - name: Install Composer deps (future)
+      #   working-directory: ratings
+      #   run: |
+      #     composer install --no-dev --prefer-dist --no-interaction
+
+      # - name: Run PHPUnit tests (future)
+      #   working-directory: ratings
+      #   run: |
+      #     ./vendor/bin/phpunit --coverage-text --colors=always
+
+      - name: Apache config syntax check (status.conf)
+        run: |
+          # Validate status.conf using base image (no custom build yet)
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/ratings/status.conf:/etc/apache2/mods-available/status.conf" \
+            php:7.4-apache bash -lc "a2enmod status && apachectl -t"
+
+      # ---------- AWS / ECR ----------
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr describe-repositories --repository-names "${ECR_REPOSITORY}" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "${ECR_REPOSITORY}" --image-scanning-configuration scanOnPush=true
+
+      # ---------- Build ----------
+      - name: Build image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          docker build \
+            -t "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" \
+            -t "${REGISTRY}/${ECR_REPOSITORY}:latest" \
+            -f ratings/Dockerfile ratings
+
+      # ---------- Runtime validation ----------
+      - name: Probe /server-status in container
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          CID=$(docker run -d -p 8080:80 "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}")
+          for i in {1..30}; do
+            if curl -fsS http://localhost:8080/server-status?auto >/dev/null; then OK=1; break; fi
+            sleep 1
+          done
+          docker logs "$CID" --tail 200 || true
+          docker rm -f "$CID" >/dev/null
+          test "${OK:-0}" = "1"
+
+      # ---------- Push ----------
+      - name: Push image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          docker push "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          docker push "${REGISTRY}/${ECR_REPOSITORY}:latest"

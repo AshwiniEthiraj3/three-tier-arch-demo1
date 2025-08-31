@@ -37,7 +37,7 @@ jobs:
       #  working-directory: catalogue
       #  run: |
       #    npm test -- --coverage || true
-          # ensure file exists so sonar doesn't fail if tests are skipped
+          # ensure file exists so sonar doesn't fail if tests are skippeddddd
       #    test -f coverage/lcov.info || echo "TN:\n" > coverage/lcov.info
 
       # ================= SONARCLOUD (pick ONE approach; this is the recommended one) =================

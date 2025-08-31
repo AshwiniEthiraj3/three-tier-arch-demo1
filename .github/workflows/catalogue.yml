@@ -46,7 +46,7 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@v2
         with:
          projectKey: 'AshwiniEthiraj3_three-tier-arch-demo1'
-         organization: 'ashwiniethiraj3'
+         organization: 'AshwiniEthiraj3'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           
@@ -82,6 +82,7 @@ jobs:
         run: |
           docker push "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           docker push "${REGISTRY}/${ECR_REPOSITORY}:latest"
+
 
 
 

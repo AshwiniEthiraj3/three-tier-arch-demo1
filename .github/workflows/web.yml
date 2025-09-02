@@ -43,15 +43,3 @@ jobs:
       - name: Push Docker Image to ECR
         run: |
           docker push ${{ steps.login-ecr.outputs.registry }}/${ECR_REPOSITORY}:latest
-
-      - name: Fill in the new image ID in the ECS task definition
-        run: |
-          sed -i "s|<IMAGE_URI>|${{ steps.login-ecr.outputs.registry }}/${ECR_REPOSITORY}:latest|g" ./ecs/web-task-def.json
-
-      - name: Deploy to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ./ecs/web-task-def.json
-          service: ${{ env.ECS_SERVICE }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true

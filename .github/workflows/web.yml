@@ -1,4 +1,4 @@
-name: web CI
+name: Deploy Web to ECS
 
 on:
   push:
@@ -6,14 +6,52 @@ on:
       - main
     paths:
       - 'web/**'
-  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: web
+  ECS_CLUSTER: your-ecs-cluster-name
+  ECS_SERVICE: web-service
+  ECS_TASK_DEFINITION: web-task-def.json
+  CONTAINER_NAME: web
 
 jobs:
-  build:
+  deploy:
+    name: Build and Deploy Web App
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      - name: Echo service name
-        run: echo "Running web pipeline"
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker Image
+        run: |
+          docker build -t $ECR_REPOSITORY:latest ./web
+          docker tag $ECR_REPOSITORY:latest ${{ steps.login-ecr.outputs.registry }}/${ECR_REPOSITORY}:latest
+
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ steps.login-ecr.outputs.registry }}/${ECR_REPOSITORY}:latest
+
+      - name: Fill in the new image ID in the ECS task definition
+        run: |
+          sed -i "s|<IMAGE_URI>|${{ steps.login-ecr.outputs.registry }}/${ECR_REPOSITORY}:latest|g" ./ecs/web-task-def.json
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ./ecs/web-task-def.json
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true

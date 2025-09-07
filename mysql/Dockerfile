@@ -1,5 +1,5 @@
 # Small image with MySQL client only
-FROM debian:bookworm-slim
+FROM mysql:8.0-debian
 
 # Install mysql client + basics
 RUN apt-get update \

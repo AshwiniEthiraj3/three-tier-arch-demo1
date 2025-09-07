@@ -1,14 +1,12 @@
-FROM mysql:5.7
+FROM mysql:8.0
 
-VOLUME /data
+# Install curl (optional if not available)
+RUN apt-get update && apt-get install -y curl
 
-ENV MYSQL_ALLOW_EMPTY_PASSWORD=yes \
-    MYSQL_DATABASE=cities \
-    MYSQL_USER=shipping \
-    MYSQL_PASSWORD=secret
+# Copy your custom scripts (optional: or fetch from S3 during container run)
+COPY scripts/convert.sh /root/convert.sh
+COPY scripts/config.sh /root/config.sh
 
-# change datadir entry in /etc/mysql/my.cnf
-COPY config.sh /root/
-RUN sed -i 's/\r$//' /root/config.sh && chmod +x /root/config.sh && /bin/sh /root/config.sh
+RUN chmod +x /root/convert.sh /root/config.sh
 
-COPY scripts/* /docker-entrypoint-initdb.d/
+

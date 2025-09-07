@@ -1,13 +1,18 @@
-FROM mysql:8.0-debian
+# Small image with MySQL client only
+FROM debian:bookworm-slim
 
-# Install curl (optional if not available)
-RUN apt-get update && apt-get install -y curl
+# Install mysql client + basics
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends mysql-client curl ca-certificates bash coreutils \
+ && rm -rf /var/lib/apt/lists/*
 
-# Copy your custom scripts (optional: or fetch from S3 during container run)
-COPY scripts/cities.csv /root/scripts/cities.csv
-COPY convert.sh /root/convert.sh
-COPY config.sh /root/config.sh
+WORKDIR /loader
 
-RUN chmod +x /root/convert.sh /root/config.sh
+# Copy scripts and runner
+COPY scripts/ ./scripts/
+COPY run.sh ./run.sh
 
+# Make shell scripts executable (ignore if none match)
+RUN chmod +x ./run.sh && chmod -f +x ./scripts/*.sh || true
 
+ENTRYPOINT ["./run.sh"]

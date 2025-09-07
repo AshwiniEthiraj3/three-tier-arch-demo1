@@ -4,7 +4,7 @@ FROM mysql:8.0-debian
 RUN apt-get update && apt-get install -y curl
 
 # Copy your custom scripts (optional: or fetch from S3 during container run)
-COPY init.sql /root/init.sql
+COPY scripts/20-ratings.sql /root/init.sql
 COPY convert.sh /root/convert.sh
 COPY config.sh /root/config.sh
 

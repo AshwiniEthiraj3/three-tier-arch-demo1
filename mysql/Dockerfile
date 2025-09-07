@@ -16,6 +16,5 @@ COPY run.sh /root/run.sh
 RUN dos2unix /root/*.sh
 
 # Run script
-ENTRYPOINT ["/usr/bin/env", "bash"]
-CMD ["/root/run.sh"]
+ENTRYPOINT ["/usr/bin/env", "bash","/root/run.sh"]
 

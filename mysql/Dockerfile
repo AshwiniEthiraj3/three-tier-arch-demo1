@@ -1,18 +1,19 @@
-# Small image with MySQL client only
-FROM mysql:8.0-debian
+FROM debian:stable-slim
 
-# Install mysql client + basics
-RUN apt-get update \
- && apt-get install -y --no-install-recommends mysql-client curl ca-certificates bash coreutils \
- && rm -rf /var/lib/apt/lists/*
+# tools + mysql client
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl bash coreutils dos2unix mysql-client \
+  && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /loader
+# scripts + data
+WORKDIR /root
+COPY scripts/convert.sh      /root/convert.sh
+COPY scripts/run.sh          /root/run.sh
+COPY scripts/cities.csv      /root/cities.csv
+COPY scripts/20-ratings.sql  /docker-entrypoint-initdb.d/20-ratings.sql
 
-# Copy scripts and runner
-COPY scripts/ ./scripts/
-COPY run.sh ./run.sh
+# fix CRLF and make exec
+RUN dos2unix /root/*.sh && chmod +x /root/*.sh
 
-# Make shell scripts executable (ignore if none match)
-RUN chmod +x ./run.sh && chmod -f +x ./scripts/*.sh || true
-
-ENTRYPOINT ["./run.sh"]
+# container just runs the one-time job
+ENTRYPOINT ["/root/run.sh"]

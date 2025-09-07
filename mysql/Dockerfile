@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # scripts + data
 WORKDIR /root
 COPY scripts/convert.sh      /root/convert.sh
-COPY scripts/run.sh          /root/run.sh
+COPY run.sh          /root/run.sh
 COPY scripts/cities.csv      /root/cities.csv
 COPY scripts/20-ratings.sql  /docker-entrypoint-initdb.d/20-ratings.sql
 

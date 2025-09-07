@@ -10,7 +10,7 @@ fi
 
 # \x27 is a single quote
 # \x60 is back tick
-#
+
 awk '
     BEGIN {
         FS=","

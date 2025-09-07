@@ -2,8 +2,7 @@
 FROM debian:bookworm-slim
 
 # Install mysql client + basics
-RUN apt-get update \
- && apt-get install -y --no-install-recommends mysql-client curl ca-certificates bash coreutils \
+RUN apt-get update && apt-get install -y --no-install-recommends mysql-client curl ca-certificates bash coreutils 
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /loader

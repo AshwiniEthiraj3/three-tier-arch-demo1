@@ -17,5 +17,5 @@ COPY default.conf.template /etc/nginx/conf.d/default.conf.template
 
 COPY *.html /usr/share/nginx/html/
 
-
+#
 COPY static/ /usr/share/nginx/html/static/

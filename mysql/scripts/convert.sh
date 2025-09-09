@@ -1,16 +1,12 @@
 #!/bin/sh
-
 # Convert cities CSV file to SQL
-
 if [ -z "$1" ]
 then
     echo "File required as first arg"
     exit 1
 fi
-
 # \x27 is a single quote
 # \x60 is back tick
-
 awk '
     BEGIN {
         FS=","

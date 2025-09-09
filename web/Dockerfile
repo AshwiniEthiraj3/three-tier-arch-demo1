@@ -13,10 +13,10 @@ RUN rm -f /usr/share/nginx/html/*.html
 
 COPY default.conf.template /etc/nginx/conf.d/default.conf.template
 
-COPY *.html /usr/share/nginx/html/
+COPY web/*.html /usr/share/nginx/html/
 
 #
-COPY static/ /usr/share/nginx/html/static/
+COPY web/static/ /usr/share/nginx/html/static/
 
 RUN chmod -R 755 /usr/share/nginx/html
 

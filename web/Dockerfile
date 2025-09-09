@@ -18,6 +18,8 @@ COPY *.html /usr/share/nginx/html/
 #
 COPY static/ /usr/share/nginx/html/static/
 
+RUN chmod -R 755 /usr/share/nginx/html
+
     
 COPY entrypoint.sh /root/entrypoint.sh
 RUN chmod +x /root/entrypoint.sh

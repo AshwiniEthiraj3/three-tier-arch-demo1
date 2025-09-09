@@ -9,12 +9,12 @@ fi
 # EUM disabled: create/copy eum.html safely
 echo "Instana EUM is disabled"
 if [ -f "$BASE_DIR/empty.html" ]; then
-  cp "$BASE_DIR/empty.html" "$BASE_DIR/eum.html"
+  cp "$BASE_DIR/empty.html" "$BASE_DIR/eum-tmpl.html"
 else
   echo "⚠️ $BASE_DIR/empty.html not found, creating placeholder eum.html"
-  echo "<!-- EUM disabled -->" > "$BASE_DIR/eum.html"
+  echo "<!-- EUM disabled -->" > "$BASE_DIR/eum-tmpl.html"
 fi
-chmod 644 "$BASE_DIR/eum.html"
+chmod 644 "$BASE_DIR/eum-tmpl.html"
 
 
 # Apply environment variables to default.conf

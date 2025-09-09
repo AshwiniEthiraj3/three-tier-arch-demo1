@@ -6,7 +6,7 @@ if [ -n "$1" ]; then
     exec "$@"
 fi
 
-# EUM disabled: always copy empty.html
+# EUM disabled: always cop
 echo "Instana EUM is disabled"
 
 if [ -f "$BASE_DIR/empty.html" ]; then

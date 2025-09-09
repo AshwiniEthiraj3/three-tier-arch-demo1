@@ -6,18 +6,16 @@ if [ -n "$1" ]; then
     exec "$@"
 fi
 
-# EUM disabled: always cop
+# EUM disabled: create/copy eum.html safely
 echo "Instana EUM is disabled"
-
 if [ -f "$BASE_DIR/empty.html" ]; then
-cp "$BASE_DIR/empty.html"
-"$BASE_DIR/eum.html"
+  cp "$BASE_DIR/empty.html" "$BASE_DIR/eum.html"
 else
-echo "$BASE_DIR/empty.html not found,creating placeholdeer eum.html"
-echo "<!=--EUM disabled -->" >
-"$BASE_DIR/eum.html"
+  echo "⚠️ $BASE_DIR/empty.html not found, creating placeholder eum.html"
+  echo "<!-- EUM disabled -->" > "$BASE_DIR/eum.html"
 fi
 chmod 644 "$BASE_DIR/eum.html"
+
 
 # Apply environment variables to default.conf
 envsubst '${CATALOGUE_HOST} ${USER_HOST} ${CART_HOST} ${SHIPPING_HOST} ${PAYMENT_HOST} ${RATINGS_HOST}' \

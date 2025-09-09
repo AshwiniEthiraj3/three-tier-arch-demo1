@@ -8,10 +8,16 @@ fi
 
 # EUM disabled: always copy empty.html
 echo "Instana EUM is disabled"
-cp $BASE_DIR/empty.html $BASE_DIR/eum.html
 
-# Ensure proper permissions
-chmod 644 $BASE_DIR/eum.html
+if [ -f "$BASE_DIR/empty.html" ]; then
+cp "$BASE_DIR/empty.html"
+"$BASE_DIR/eum.html"
+else
+echo "$BASE_DIR/empty.html not found,creating placeholdeer eum.html"
+echo "<!=--EUM disabled -->" >
+"$BASE_DIR/eum.html"
+fi
+chmod 644 "$BASE_DIR/eum.html"
 
 # Apply environment variables to default.conf
 envsubst '${CATALOGUE_HOST} ${USER_HOST} ${CART_HOST} ${SHIPPING_HOST} ${PAYMENT_HOST} ${RATINGS_HOST}' \

@@ -14,4 +14,8 @@ RUN chmod +x /root/entrypoint.sh
 ENTRYPOINT ["/root/entrypoint.sh"]
 
 COPY default.conf.template /etc/nginx/conf.d/default.conf.template
-COPY . /usr/share/nginx/html/
+
+COPY *.html /usr/share/nginx/html/
+
+
+COPY static/ /usr/share/nginx/html/static/

@@ -12,10 +12,7 @@ ENV CATALOGUE_HOST=catalogue \
 RUN rm -f /usr/share/nginx/html/*.html
 
 COPY default.conf.template /etc/nginx/conf.d/default.conf.template
-
 COPY web/*.html /usr/share/nginx/html/
-
-#
 COPY web/static/ /usr/share/nginx/html/static/
 
 RUN chmod -R 755 /usr/share/nginx/html

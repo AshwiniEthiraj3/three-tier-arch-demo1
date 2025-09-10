@@ -27,6 +27,17 @@ server {
         try_files $uri /images/placeholder.png;
     }
 
+    location /static/{
+      root   /usr/share/nginx/html;
+    }
+
+    location /js/ {
+      root   /usr/share/nginx/html;
+    }
+
+    location /media/{
+      root   /usr/share/nginx/html;
+    }
     #error_page  404              /404.html;
 
     # redirect server error pages to the static page /50x.html
